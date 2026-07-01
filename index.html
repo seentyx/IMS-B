@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | BFARPFO Production Monitoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep-water:#0b2e3d;--mid-water:#154a5c;--tide:#1f7a6c;
+    --tide-soft:rgba(31,122,108,0.12);--foam:#eef3ee;--sand:#f6f1e6;
+    --rust:#c0573a;--rust-soft:rgba(192,87,58,0.12);--ink:#0c1f24;
+    --line:rgba(11,46,61,0.12);--muted:#6b7a79;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',sans-serif;background:var(--sand);color:var(--ink);min-height:100vh;display:flex;}
+  .sidebar{width:240px;background:var(--deep-water);color:var(--foam);display:flex;flex-direction:column;padding:28px 20px;flex-shrink:0;}
+  .brand{display:flex;align-items:center;gap:11px;padding-bottom:28px;border-bottom:1px solid rgba(238,243,238,0.14);margin-bottom:28px;}
+  .brand .badge{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(238,243,238,0.4);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:14px;flex-shrink:0;}
+  .brand .brand-text{font-size:12px;line-height:1.4;}
+  .brand .brand-text strong{display:block;font-size:13px;letter-spacing:0.02em;}
+  .brand .brand-text span{opacity:0.6;font-size:11px;}
+  .nav-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;opacity:0.45;margin-bottom:10px;padding-left:10px;}
+  .nav-section{margin-bottom:26px;}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:10px;border-radius:7px;font-size:13.5px;color:rgba(238,243,238,0.75);text-decoration:none;margin-bottom:2px;cursor:pointer;transition:background 0.15s;}
+  .nav-item:hover{background:rgba(238,243,238,0.06);color:var(--foam);}
+  .nav-item.active{background:var(--tide);color:#fff;font-weight:600;}
+  .nav-item .ic{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .sidebar-footer{margin-top:auto;padding-top:18px;border-top:1px solid rgba(238,243,238,0.14);font-size:11.5px;color:rgba(238,243,238,0.45);font-family:'JetBrains Mono',monospace;line-height:1.6;}
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 32px;flex-shrink:0;}
+  .topbar-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--deep-water);}
+  .topbar-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .topbar-right{display:flex;align-items:center;gap:18px;}
+  .live-pill{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--tide);background:var(--tide-soft);padding:6px 12px;border-radius:20px;}
+  .live-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--tide);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  .user-chip{display:flex;align-items:center;gap:10px;}
+  .user-chip .avatar{width:34px;height:34px;border-radius:50%;background:var(--mid-water);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;font-family:'Fraunces',serif;}
+  .user-chip .who{font-size:12.5px;line-height:1.4;}
+  .user-chip .who strong{display:block;font-size:13px;color:var(--deep-water);}
+  .user-chip .who span{color:var(--muted);}
+  .content{flex:1;padding:28px 32px 40px;overflow-y:auto;}
+
+  /* Filter bar */
+  .filter-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;align-items:center;background:#fff;padding:14px 18px;border-radius:10px;border:1px solid var(--line);}
+  .filter-group{display:flex;flex-direction:column;gap:4px;}
+  .filter-group label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .filter-bar select{padding:8px 12px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:'Source Sans 3',sans-serif;background:#fff;color:var(--ink);cursor:pointer;transition:border-color 0.15s;}
+  .filter-bar select:focus{outline:none;border-color:var(--tide);}
+  .filter-divider{width:1px;height:36px;background:var(--line);margin:0 4px;align-self:flex-end;}
+  .filter-spacer{flex:1;}
+  .btn-reset{padding:8px 14px;background:transparent;color:var(--muted);border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:'Source Sans 3',sans-serif;}
+  .btn-reset:hover{border-color:var(--rust);color:var(--rust);}
+  .btn-export{padding:8px 16px;background:var(--deep-water);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Source Sans 3',sans-serif;}
+  .btn-export:hover{background:var(--mid-water);}
+
+  /* Active filter chips */
+  .filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;min-height:0;}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--tide-soft);color:var(--tide);border-radius:20px;font-size:12px;font-weight:600;}
+  .chip .chip-x{cursor:pointer;opacity:0.7;font-size:14px;line-height:1;}
+  .chip .chip-x:hover{opacity:1;}
+
+  /* Stat cards */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .stat-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;transition:border-color 0.2s;}
+  .stat-card.highlight-card{border-color:var(--tide);}
+  .stat-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .stat-label{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
+  .stat-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--tide-soft);}
+  .stat-icon svg{width:15px;height:15px;}
+  .stat-icon.rust{background:var(--rust-soft);}
+  .stat-value{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--deep-water);margin-bottom:6px;transition:all 0.3s;}
+  .stat-delta{font-size:12px;font-weight:600;}
+  .stat-delta.up{color:var(--tide);}
+  .stat-delta.down{color:var(--rust);}
+  .stat-delta.neutral{color:var(--muted);}
+  .stat-delta span{color:var(--muted);font-weight:400;}
+
+  /* Panels */
+  .panel-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;margin-bottom:20px;}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px;}
+  .panel-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;}
+  .panel-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--deep-water);}
+  .panel-meta{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+  /* Bar chart */
+  .bar-chart{display:flex;align-items:flex-end;gap:10px;height:180px;padding-top:10px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;}
+  .bar{width:100%;max-width:44px;border-radius:5px 5px 0 0;transition:height 0.4s ease;}
+  .bar.aqua{background:linear-gradient(180deg,var(--tide),var(--mid-water));}
+  .bar.muni{background:linear-gradient(180deg,#5b7fcc,#3b5bab);}
+  .bar.comm{background:#ccc;}
+  .bar-val{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--mid-water);margin-bottom:5px;font-weight:500;text-align:center;}
+  .bar-lbl{font-size:10.5px;color:var(--muted);margin-top:8px;text-align:center;}
+
+  /* Category list */
+  .cat-list{display:flex;flex-direction:column;gap:14px;}
+  .cat-row{display:flex;align-items:center;gap:12px;}
+  .cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .cat-name{font-size:13px;flex:1;}
+  .cat-track{flex:1;max-width:90px;height:6px;border-radius:4px;background:var(--line);overflow:hidden;}
+  .cat-fill{height:100%;border-radius:4px;transition:width 0.4s ease;}
+  .cat-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);width:38px;text-align:right;}
+
+  /* Species list */
+  .species-list{display:flex;flex-direction:column;gap:9px;margin-top:4px;}
+  .sp-row{display:flex;align-items:center;gap:10px;font-size:13px;}
+  .sp-rank{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);width:18px;}
+  .sp-name{flex:1;color:var(--ink);}
+  .sp-val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mid-water);font-weight:500;}
+
+  /* Table */
+  .table-panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;min-width:600px;}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);font-weight:600;padding:0 12px 12px;border-bottom:1.5px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none;}
+  th:hover{color:var(--deep-water);}
+  th .sort-icon{margin-left:4px;opacity:0.4;font-size:10px;}
+  th.sorted .sort-icon{opacity:1;color:var(--tide);}
+  td{padding:12px;font-size:13.5px;border-bottom:1px solid var(--line);color:var(--ink);}
+  tr:last-child td{border-bottom:none;}
+  tr.hidden-row{display:none;}
+  .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;}
+  .tag.aqua{background:var(--tide-soft);color:var(--tide);}
+  .tag.muni{background:#eaf0fb;color:#3b5bab;}
+  .tag.comm{background:var(--rust-soft);color:var(--rust);}
+  .mono{font-family:'JetBrains Mono',monospace;font-size:12.5px;}
+  .no-results{text-align:center;padding:40px;color:var(--muted);font-size:14px;display:none;}
+
+  /* Empty state */
+  .empty-state{text-align:center;padding:48px 20px;color:var(--muted);}
+  .empty-state p{font-size:14px;margin-top:8px;}
+
+  @media(max-width:1100px){.stat-grid{grid-template-columns:repeat(2,1fr);}.panel-grid{grid-template-columns:1fr;}}
+  @media(max-width:760px){.sidebar{display:none;}.stat-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="brand">
+    <div class="badge">BF</div>
+    <div class="brand-text">
+      <strong>BFARPFO</strong>
+      <span>Isabela Provincial Office</span>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Monitor</div>
+    <div class="nav-item active">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span>
+      Dashboard
+    </div>
+    <div class="nav-item">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h8.5L20 7.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M14 3v5h5"/></svg></span>
+      Production Records
+    </div>
+    <div class="nav-item">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span>
+      Analytics
+    </div>
+    <div class="nav-item">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h8.5L20 7.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 13h6M9 17h6M9 9h2"/></svg></span>
+      Reports
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Administration</div>
+    <div class="nav-item">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+      User Accounts
+    </div>
+    <div class="nav-item">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.98 19.4a1.7 1.7 0 0 0-1.87.34l-.06-.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.98a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.03Z"/></svg></span>
+      Settings
+    </div>
+  </div>
+  <div class="sidebar-footer">v0.1 PROTOTYPE<br>Alibagu, City of Ilagan</div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Production Monitoring Dashboard</div>
+      <div class="topbar-sub" id="topbar-sub">2026 Isabela Fisheries Production &middot; All data</div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-pill"><span class="dot"></span>LIVE</div>
+      <div class="user-chip">
+        <div class="avatar">GG</div>
+        <div class="who">
+          <strong>Gerico P. Gibe</strong>
+          <span>Senior Aquaculturist</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Month</label>
+        <select id="filter-month" onchange="applyFilters()">
+          <option value="all">All Months</option>
+          <option value="jan">January 2026</option>
+          <option value="feb">February 2026</option>
+        </select>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <label>District</label>
+        <select id="filter-district" onchange="applyFilters()">
+          <option value="all">All Districts</option>
+          <option value="1">District 1</option>
+          <option value="2">District 2</option>
+          <option value="3">District 3</option>
+          <option value="4">District 4</option>
+          <option value="5">District 5</option>
+          <option value="6">District 6</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Municipality</label>
+        <select id="filter-muni" onchange="applyFilters()">
+          <option value="all">All Municipalities</option>
+          <option value="City of Ilagan">City of Ilagan</option>
+          <option value="Sta. Maria">Sta. Maria</option>
+          <option value="Gamu">Gamu</option>
+          <option value="San Mateo">San Mateo</option>
+          <option value="Ramon">Ramon</option>
+          <option value="Santiago City">Santiago City</option>
+          <option value="Dinapigue">Dinapigue</option>
+          <option value="Luna">Luna</option>
+          <option value="Quezon">Quezon</option>
+          <option value="Quirino">Quirino</option>
+          <option value="Echague">Echague</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Category</label>
+        <select id="filter-cat" onchange="applyFilters()">
+          <option value="all">All Categories</option>
+          <option value="Aquaculture">Aquaculture</option>
+          <option value="Municipal">Municipal Fisheries</option>
+          <option value="Commercial">Commercial Fisheries</option>
+        </select>
+      </div>
+      <div class="filter-spacer"></div>
+      <button class="btn-reset" onclick="resetFilters()">Reset</button>
+      <button class="btn-export">Generate Report</button>
+    </div>
+
+    <div class="filter-chips" id="filter-chips"></div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-label">Total Production</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#1f7a6c" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+        </div>
+        <div class="stat-value" id="stat-total">415,700 kg</div>
+        <div class="stat-delta" id="stat-total-delta"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-label">Aquaculture</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#1f7a6c" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        </div>
+        <div class="stat-value" id="stat-aqua">342,413 kg</div>
+        <div class="stat-delta" id="stat-aqua-delta"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-label">Municipal Fisheries</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#3b5bab" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></div>
+        </div>
+        <div class="stat-value" id="stat-muni">73,287 kg</div>
+        <div class="stat-delta" id="stat-muni-delta"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-label">Commercial Fisheries</div>
+          <div class="stat-icon rust"><svg viewBox="0 0 24 24" fill="none" stroke="#c0573a" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 3"/></svg></div>
+        </div>
+        <div class="stat-value" id="stat-comm">No data</div>
+        <div class="stat-delta neutral" id="stat-comm-delta">Not yet reported for 2026</div>
+      </div>
+    </div>
+
+    <div class="panel-grid">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Production by Category</div>
+          <div class="panel-meta" id="chart-meta">JAN + FEB 2026</div>
+        </div>
+        <div class="bar-chart" id="bar-chart"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Category Breakdown</div>
+          <div class="panel-meta" id="cat-meta">ALL MONTHS</div>
+        </div>
+        <div class="cat-list" id="cat-list"></div>
+        <div style="margin-top:24px;border-top:1px solid var(--line);padding-top:18px;">
+          <div class="panel-head" style="margin-bottom:12px;">
+            <div class="panel-title" style="font-size:14px;">Top Species (Municipal)</div>
+          </div>
+          <div class="species-list" id="species-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-panel">
+      <div class="panel-head">
+        <div class="panel-title">Production Records</div>
+        <div class="panel-meta" id="table-meta">SHOWING ALL RECORDS</div>
+      </div>
+      <div class="table-wrap">
+        <table id="records-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable('district')">District <span class="sort-icon">&#8597;</span></th>
+              <th onclick="sortTable('muni')">Municipality <span class="sort-icon">&#8597;</span></th>
+              <th onclick="sortTable('month')">Month <span class="sort-icon">&#8597;</span></th>
+              <th onclick="sortTable('category')">Category <span class="sort-icon">&#8597;</span></th>
+              <th>Farm / Sector</th>
+              <th onclick="sortTable('species')">Species <span class="sort-icon">&#8597;</span></th>
+              <th onclick="sortTable('production')" style="text-align:right;">Production (kg) <span class="sort-icon">&#8597;</span></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div class="no-results" id="no-results">No records match your current filters.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// =============================================
+// FULL DATASET FROM 2026 ISABELA MONITORING FILE
+// =============================================
+const ALL_RECORDS = [
+  // AQUACULTURE - JANUARY
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:5400},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:780},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:50},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Carp",production:15},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Ulang",production:3},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Catfish (Hito)",production:71},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:100},
+  {district:"2",muni:"Gamu",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:60},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Carp",production:350},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:500},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Mudfish (Dalag)",production:300},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:7360},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Carp",production:800},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Catfish (Hito)",production:400},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Mudfish (Dalag)",production:350},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:11000},
+  {district:"3",muni:"Ramon",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:17360},
+  {district:"3",muni:"Ramon",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:289789},
+  {district:"5",muni:"Luna",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Carp",production:0},
+  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:1350},
+  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Gourami",production:100},
+  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:230},
+  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Catfish (Hito)",production:20},
+  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"FW Shrimp",production:50},
+  {district:"6",muni:"Echague",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:2350},
+  {district:"6",muni:"Echague",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:3625},
+
+  // AQUACULTURE - FEBRUARY
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:4800},
+  {district:"2",muni:"Gamu",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:114},
+  {district:"3",muni:"Ramon",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:14385},
+  {district:"3",muni:"Ramon",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:220150},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:7650},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:519.7},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Carp",production:30},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:50},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"FW Shrimp",production:25},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Mudfish (Dalag)",production:20},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:860},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Carp",production:380},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Catfish (Hito)",production:50},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"FW Shrimp",production:150},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Mudfish (Dalag)",production:250},
+  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:350},
+  {district:"5",muni:"Quezon",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:11389},
+  {district:"5",muni:"Quirino",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:850},
+  {district:"5",muni:"Quirino",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:160},
+  {district:"5",muni:"Quirino",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"FW Shrimp",production:50},
+  {district:"5",muni:"Quirino",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Gourami",production:20},
+
+  // MUNICIPAL - JANUARY
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mullet (Kapak)",production:1320},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:2200},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:2300},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Silver Perch (Ayungin)",production:600},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Goby (Biya)",production:8500},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Kanduli)",production:720},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:1030},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:1150},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:800},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Shell (Kuhol)",production:250},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Snail (Suso)",production:250},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Clam (Tulya)",production:200},
+  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Gourami",production:650},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:800},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:240},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Kanduli)",production:25},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:40},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:30},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:120},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Others: Itawes",production:350},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Shrimp (Hipon)",production:85},
+  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Shell (Kuhol)",production:108},
+  {district:"2",muni:"Gamu",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:321},
+  {district:"2",muni:"Gamu",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:527},
+  {district:"2",muni:"Gamu",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:138},
+  {district:"2",muni:"Gamu",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:155},
+  {district:"2",muni:"Gamu",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Shrimp (Hipon)",production:123},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:18360},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:1150},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Silver Perch (Ayungin)",production:250},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Goby (Biya)",production:250},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:600},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:900},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Rice Eel (Kiwet)",production:2500},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Shrimp (Hipon)",production:300},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Clam (Tulya)",production:200},
+  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Shell (Agurong)",production:200},
+  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:8000},
+  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:2000},
+  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Silver Perch (Ayungin)",production:1500},
+  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:300},
+  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:1500},
+  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Clam (Tulya)",production:100},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Big-eye Scad (Matang-baka)",production:1251.3},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Frigate Tuna (Tulingan)",production:1524.4},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Squid (Pusit)",production:12},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Skipjack Tuna (Gulyasan)",production:631},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Sandig",production:14},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Octopus (Kurita)",production:12.3},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Umipos",production:41.1},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Dolphinfish (Dorado)",production:497.6},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Lobster (Binaging)",production:48.1},
+  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Sarungan",production:13.2},
+  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:170},
+  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:60},
+  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:50},
+  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:40},
+  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Rice Eel (Kiwet)",production:50},
+  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Shell (Kuhol)",production:50},
+  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Snail (Suso)",production:30},
+  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Gourami",production:20},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:1320},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:980},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:60},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:50},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Rice Eel (Kiwet)",production:2500},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Shrimp (Hipon)",production:320},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Clam (Tulya)",production:1000},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Shell (Kuhol)",production:950},
+  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Snail (Suso)",production:450},
+
+  // MUNICIPAL - FEBRUARY
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mullet (Ludong)",production:650},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:3200},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:2350},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Silver Perch (Ayungin)",production:550},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Goby (Biya)",production:3000},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:2030},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:1500},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Gourami",production:610},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mullet (Kapak)",production:710},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:910},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Shell (Kuhol)",production:350},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Snail (Suso)",production:350},
+  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Clam (Tulya)",production:550},
+  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:405},
+  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:313},
+  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:10},
+  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:15},
+  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:198},
+  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Shrimp (Hipon)",production:50},
+  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Golden Fish",production:95},
+  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:7500},
+  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:1800},
+  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Silver Perch (Ayungin)",production:2000},
+  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:400},
+  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:2500},
+  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Clam (Tulya)",production:200},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:150},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:20},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Goby (Biya)",production:25},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:52},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:60},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Gourami",production:5},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:190},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Shrimp (Hipon)",production:18},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Crab (Talangka)",production:12},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Clam (Tulya)",production:35},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Shell (Kuhol)",production:28},
+  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Snail (Suso)",production:18},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:5.8},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Shrimp (Hipon)",production:4.6},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Big-eye Scad (Matang-baka)",production:362.8},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Yellowfin Tuna (Tambakol)",production:5822.6},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Cavalla (Talakitok)",production:13.5},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Frigate Tuna (Tulingan)",production:3852.9},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Hairtail (Espada)",production:271.3},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Squid (Pusit)",production:16},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Roundscad (Galunggong)",production:758.5},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Siganid (Samaral)",production:65},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Octopus",production:2.5},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Parot Fish",production:62.7},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Dolphin Fish",production:1548.3},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Lobster",production:35.6},
+  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Salmon",production:1010.4},
+  {district:"5",muni:"Luna",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:350},
+  {district:"5",muni:"Luna",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:450},
+  {district:"5",muni:"Luna",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:180},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:540},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:37},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:10},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:45},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:2},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Crab (Talangka)",production:43},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Clam (Tulya)",production:10},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Shell (Kuhol)",production:10},
+  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Snail (Suso)",production:25},
+  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:100},
+  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:20},
+  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:50},
+  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:40},
+  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Gourami",production:20},
+  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Rice Eel (Kiwet)",production:50},
+  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Shell (Kuhol)",production:50},
+  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Snail (Suso)",production:30},
+];
+
+// =============================================
+// STATE
+// =============================================
+let currentSort = {col: 'production', dir: 'desc'};
+let filtered = [...ALL_RECORDS];
+
+// =============================================
+// FILTER LOGIC
+// =============================================
+function applyFilters() {
+  const month = document.getElementById('filter-month').value;
+  const district = document.getElementById('filter-district').value;
+  const muni = document.getElementById('filter-muni').value;
+  const cat = document.getElementById('filter-cat').value;
+
+  filtered = ALL_RECORDS.filter(r => {
+    if (month !== 'all' && r.month !== month) return false;
+    if (district !== 'all' && r.district !== district) return false;
+    if (muni !== 'all' && r.muni !== muni) return false;
+    if (cat !== 'all' && r.category !== cat) return false;
+    return true;
+  });
+
+  renderAll();
+}
+
+function resetFilters() {
+  document.getElementById('filter-month').value = 'all';
+  document.getElementById('filter-district').value = 'all';
+  document.getElementById('filter-muni').value = 'all';
+  document.getElementById('filter-cat').value = 'all';
+  filtered = [...ALL_RECORDS];
+  renderAll();
+}
+
+// =============================================
+// SORT
+// =============================================
+function sortTable(col) {
+  if (currentSort.col === col) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.col = col;
+    currentSort.dir = col === 'production' ? 'desc' : 'asc';
+  }
+  renderTable();
+  updateSortHeaders();
+}
+
+function updateSortHeaders() {
+  document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+}
+
+function getSorted() {
+  return [...filtered].sort((a, b) => {
+    let va = a[currentSort.col] || '';
+    let vb = b[currentSort.col] || '';
+    if (typeof va === 'number') {
+      return currentSort.dir === 'asc' ? va - vb : vb - va;
+    }
+    return currentSort.dir === 'asc'
+      ? String(va).localeCompare(String(vb))
+      : String(vb).localeCompare(String(va));
+  });
+}
+
+// =============================================
+// RENDER
+// =============================================
+function renderAll() {
+  renderChips();
+  renderStats();
+  renderBarChart();
+  renderCategoryBreakdown();
+  renderSpecies();
+  renderTable();
+  updateTopbarSub();
+}
+
+function updateTopbarSub() {
+  const month = document.getElementById('filter-month').value;
+  const muni = document.getElementById('filter-muni').value;
+  const cat = document.getElementById('filter-cat').value;
+  let parts = ['2026 Isabela'];
+  if (month !== 'all') parts.push(month === 'jan' ? 'January' : 'February');
+  if (muni !== 'all') parts.push(muni);
+  if (cat !== 'all') parts.push(cat);
+  document.getElementById('topbar-sub').textContent = parts.join(' · ') + ' Fisheries Production';
+}
+
+function renderChips() {
+  const chips = document.getElementById('filter-chips');
+  chips.innerHTML = '';
+  const labels = {
+    'filter-month': {jan:'January 2026', feb:'February 2026'},
+    'filter-district': {1:'District 1',2:'District 2',3:'District 3',4:'District 4',5:'District 5',6:'District 6'},
+    'filter-muni': null,
+    'filter-cat': {Aquaculture:'Aquaculture', Municipal:'Municipal Fisheries', Commercial:'Commercial Fisheries'}
+  };
+  ['filter-month','filter-district','filter-muni','filter-cat'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel.value !== 'all') {
+      const label = labels[id] ? (labels[id][sel.value] || sel.value) : sel.value;
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.innerHTML = label + ' <span class="chip-x" onclick="clearFilter(\'' + id + '\')">&#x2715;</span>';
+      chips.appendChild(chip);
+    }
+  });
+}
+
+function clearFilter(id) {
+  document.getElementById(id).value = 'all';
+  applyFilters();
+}
+
+function fmt(n) {
+  if (!n || n === 0) return '0';
+  return n.toLocaleString('en-US', {maximumFractionDigits:0});
+}
+
+function renderStats() {
+  const aqua = filtered.filter(r => r.category === 'Aquaculture').reduce((s,r) => s + r.production, 0);
+  const muni = filtered.filter(r => r.category === 'Municipal').reduce((s,r) => s + r.production, 0);
+  const comm = filtered.filter(r => r.category === 'Commercial').reduce((s,r) => s + r.production, 0);
+  const total = aqua + muni + comm;
+
+  document.getElementById('stat-total').textContent = fmt(total) + ' kg';
+  document.getElementById('stat-aqua').textContent = aqua > 0 ? fmt(aqua) + ' kg' : 'No data';
+  document.getElementById('stat-muni').textContent = muni > 0 ? fmt(muni) + ' kg' : 'No data';
+  document.getElementById('stat-comm').textContent = comm > 0 ? fmt(comm) + ' kg' : 'No data';
+
+  const month = document.getElementById('filter-month').value;
+  document.getElementById('stat-total-delta').textContent = '';
+  document.getElementById('stat-aqua-delta').textContent = '';
+  document.getElementById('stat-muni-delta').textContent = '';
+  if (month === 'all') {
+    document.getElementById('stat-total-delta').innerHTML = '<span>Jan + Feb combined</span>';
+    document.getElementById('stat-aqua-delta').innerHTML = '<span>Jan + Feb combined</span>';
+    document.getElementById('stat-muni-delta').innerHTML = '<span>Jan + Feb combined</span>';
+  }
+}
+
+function renderBarChart() {
+  const chart = document.getElementById('bar-chart');
+  const month = document.getElementById('filter-month').value;
+
+  // Build bars based on filter
+  let bars = [];
+  if (month === 'all' || month === 'jan') {
+    const aquaJan = filtered.filter(r => r.category === 'Aquaculture' && r.month === 'jan').reduce((s,r) => s+r.production,0);
+    const muniJan = filtered.filter(r => r.category === 'Municipal' && r.month === 'jan').reduce((s,r) => s+r.production,0);
+    if (aquaJan > 0) bars.push({label:'Aqua. Jan', val:aquaJan, cls:'aqua'});
+    if (muniJan > 0) bars.push({label:'Mun. Jan', val:muniJan, cls:'muni'});
+  }
+  if (month === 'all' || month === 'feb') {
+    const aquaFeb = filtered.filter(r => r.category === 'Aquaculture' && r.month === 'feb').reduce((s,r) => s+r.production,0);
+    const muniFeb = filtered.filter(r => r.category === 'Municipal' && r.month === 'feb').reduce((s,r) => s+r.production,0);
+    if (aquaFeb > 0) bars.push({label:'Aqua. Feb', val:aquaFeb, cls:'aqua'});
+    if (muniFeb > 0) bars.push({label:'Mun. Feb', val:muniFeb, cls:'muni'});
+  }
+
+  if (bars.length === 0) {
+    chart.innerHTML = '<div class="empty-state" style="display:block"><p>No data for selected filters.</p></div>';
+    return;
+  }
+
+  const maxVal = Math.max(...bars.map(b => b.val));
+  const metaMonths = month === 'jan' ? 'JAN 2026' : month === 'feb' ? 'FEB 2026' : 'JAN + FEB 2026';
+  document.getElementById('chart-meta').textContent = metaMonths + ' · KG';
+
+  chart.innerHTML = bars.map(b => {
+    const pct = maxVal > 0 ? Math.max((b.val / maxVal) * 100, 2) : 2;
+    const display = b.val >= 1000 ? (b.val/1000).toFixed(0)+'k' : fmt(b.val);
+    return `<div class="bar-col">
+      <div class="bar-val">${display}</div>
+      <div class="bar ${b.cls}" style="height:${pct}%"></div>
+      <div class="bar-lbl">${b.label}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCategoryBreakdown() {
+  const aqua = filtered.filter(r => r.category === 'Aquaculture').reduce((s,r) => s+r.production,0);
+  const muni = filtered.filter(r => r.category === 'Municipal').reduce((s,r) => s+r.production,0);
+  const comm = filtered.filter(r => r.category === 'Commercial').reduce((s,r) => s+r.production,0);
+  const total = aqua + muni + comm;
+
+  const month = document.getElementById('filter-month').value;
+  document.getElementById('cat-meta').textContent = month === 'jan' ? 'JANUARY' : month === 'feb' ? 'FEBRUARY' : 'ALL MONTHS';
+
+  const pct = (v) => total > 0 ? ((v/total)*100).toFixed(1) : '0';
+
+  document.getElementById('cat-list').innerHTML = `
+    <div class="cat-row">
+      <span class="cat-dot" style="background:#1f7a6c;"></span>
+      <span class="cat-name">Aquaculture</span>
+      <div class="cat-track"><div class="cat-fill" style="width:${pct(aqua)}%;background:#1f7a6c;"></div></div>
+      <span class="cat-pct">${pct(aqua)}%</span>
+    </div>
+    <div class="cat-row">
+      <span class="cat-dot" style="background:#3b5bab;"></span>
+      <span class="cat-name">Municipal</span>
+      <div class="cat-track"><div class="cat-fill" style="width:${pct(muni)}%;background:#3b5bab;"></div></div>
+      <span class="cat-pct">${pct(muni)}%</span>
+    </div>
+    <div class="cat-row">
+      <span class="cat-dot" style="background:#ccc;"></span>
+      <span class="cat-name">Commercial</span>
+      <div class="cat-track"><div class="cat-fill" style="width:${pct(comm)}%;background:#ccc;"></div></div>
+      <span class="cat-pct">${pct(comm)}%</span>
+    </div>
+  `;
+}
+
+function renderSpecies() {
+  const muniFilt = filtered.filter(r => r.category === 'Municipal');
+  const totals = {};
+  muniFilt.forEach(r => {
+    totals[r.species] = (totals[r.species] || 0) + r.production;
+  });
+  const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+  if (sorted.length === 0) {
+    document.getElementById('species-list').innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">No municipal data for selection.</div>';
+    return;
+  }
+
+  document.getElementById('species-list').innerHTML = sorted.map(([sp, val], i) =>
+    `<div class="sp-row">
+      <span class="sp-rank">${String(i+1).padStart(2,'0')}</span>
+      <span class="sp-name">${sp}</span>
+      <span class="sp-val">${fmt(val)} kg</span>
+    </div>`
+  ).join('');
+}
+
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  const noResults = document.getElementById('no-results');
+  const meta = document.getElementById('table-meta');
+  const rows = getSorted();
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '';
+    noResults.style.display = 'block';
+    meta.textContent = '0 RECORDS';
+    return;
+  }
+
+  noResults.style.display = 'none';
+  meta.textContent = `SHOWING ${rows.length} RECORD${rows.length !== 1 ? 'S' : ''}`;
+
+  const catClass = {Aquaculture:'aqua', Municipal:'muni', Commercial:'comm'};
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td class="mono">${r.district}</td>
+      <td>${r.muni}</td>
+      <td class="mono">${r.month === 'jan' ? 'Jan 2026' : 'Feb 2026'}</td>
+      <td><span class="tag ${catClass[r.category] || ''}">${r.category}</span></td>
+      <td style="font-size:12.5px;color:var(--muted)">${r.farm}</td>
+      <td>${r.species}</td>
+      <td class="mono" style="text-align:right">${fmt(r.production)}</td>
+    </tr>
+  `).join('');
+}
+
+// Init
+renderAll();
+</script>
+</body>
+</html>
