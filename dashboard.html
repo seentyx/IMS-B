@@ -105,14 +105,7 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--body-bg); col
 .topbar-left .page-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
 
-.live-pill {
-  display: flex; align-items: center; gap: 7px;
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--teal); background: var(--teal-soft);
-  padding: 5px 11px; border-radius: 20px;
-}
-.live-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
 
 .user-chip {
   display: flex; align-items: center; gap: 10px;
@@ -331,9 +324,8 @@ tr:hover td { background: rgba(31,122,108,0.03); }
       <div class="page-sub" id="topbar-sub">2026 Isabela Fisheries Production &middot; All data</div>
     </div>
     <div class="topbar-right">
-      <div class="live-pill"><span class="dot"></span>LIVE</div>
       <div class="user-chip">
-        <div class="user-avatar">GG</div>
+        <div class="user-avatar">US</div>
         <div class="user-info">
           <div class="name">User</div>
           <div class="role">Senior Aquaculturist</div>
@@ -357,7 +349,7 @@ tr:hover td { background: rgba(31,122,108,0.03); }
       <div class="filter-divider"></div>
       <div class="filter-group">
         <label>District</label>
-        <select id="filter-district" onchange="applyFilters()">
+        <select id="filter-district" onchange="onDistrictChange()">
           <option value="all">All Districts</option>
           <option value="1">District 1</option>
           <option value="2">District 2</option>
@@ -583,6 +575,27 @@ const ALL_RECORDS = [
   {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:100},
 ];
 
+// Canonical district -> municipality map (source of truth)
+const DISTRICTS = { "1": ["City of Ilagan", "Cabagan", "Delfin Albano", "Divilacan", "Maconacon","San Pablo", "Santa Maria", "Santo Tomas","Tumauini"], "2": ["Benito Soliven", "Gamu", "Naguilian", "Palanan", "Reina Mercedes", "San Mariano"], "3": ["Alicia", "Angadanan", "Cabatuan", "Ramon", "San Mateo"], "4": ["Santiago","Cordon","Dinapigue","Jones", "San Agustin"], "5": ["Aurora", "Burgos", "Luna", "Mallig", "Quezon", "Quirino", "Roxas", "San Manuel"], "6": ["Cauayan", "Echague", "San Guillermo", "San Isidro"] };
+
+// The dataset uses a couple of shorthand spellings ("Sta. Maria", "Santiago City")
+// that don't match the canonical names above 1:1 — map those explicitly.
+const MUNI_ALIASES = { "Sta. Maria": "Santa Maria", "Santiago City": "Santiago" };
+
+// Build a reverse lookup (municipality -> district) from the canonical map
+const MUNI_TO_DISTRICT = {};
+Object.entries(DISTRICTS).forEach(([dist, munis]) => {
+  munis.forEach(m => { MUNI_TO_DISTRICT[m] = dist; });
+});
+
+// Correct every record's district against the canonical source, so filtering
+// is always right even if a record was entered with the wrong district.
+ALL_RECORDS.forEach(r => {
+  const canonicalName = MUNI_ALIASES[r.muni] || r.muni;
+  const correctDistrict = MUNI_TO_DISTRICT[canonicalName];
+  if (correctDistrict) r.district = correctDistrict;
+});
+
 let currentSort = {col:'production', dir:'desc'};
 let filtered = [...ALL_RECORDS];
 
@@ -601,10 +614,30 @@ function applyFilters() {
   renderAll();
 }
 
+// Keep the Municipality dropdown scoped to whichever District is selected,
+// so it's impossible to pick a District/Municipality combo that can't match.
+function onDistrictChange() {
+  const district = document.getElementById('filter-district').value;
+  const muniSelect = document.getElementById('filter-muni');
+  const previousValue = muniSelect.value;
+
+  const availableMunis = district === 'all'
+    ? [...new Set(ALL_RECORDS.map(r => r.muni))].sort()
+    : [...new Set(ALL_RECORDS.filter(r => r.district === district).map(r => r.muni))].sort();
+
+  muniSelect.innerHTML = '<option value="all">All Municipalities</option>' +
+    availableMunis.map(m => `<option value="${m}">${m}</option>`).join('');
+
+  // Preserve the previous selection only if it's still valid for this district
+  muniSelect.value = availableMunis.includes(previousValue) ? previousValue : 'all';
+
+  applyFilters();
+}
+
 function resetFilters() {
   document.getElementById('filter-month').value = 'all';
   document.getElementById('filter-district').value = 'all';
-  document.getElementById('filter-muni').value = 'all';
+  onDistrictChange(); // rebuilds the municipality list back to "All" and calls applyFilters
   document.getElementById('filter-cat').value = 'all';
   filtered = [...ALL_RECORDS];
   renderAll();
@@ -668,7 +701,11 @@ function renderChips() {
   });
 }
 
-function clearFilter(id) { document.getElementById(id).value = 'all'; applyFilters(); }
+function clearFilter(id) {
+  document.getElementById(id).value = 'all';
+  if (id === 'filter-district') onDistrictChange();
+  else applyFilters();
+}
 
 function renderStats() {
   const aqua = filtered.filter(r => r.category === 'Aquaculture').reduce((s,r) => s+r.production,0);
