@@ -665,7 +665,7 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--body-bg); col
   </div>
 
   <div class="sidebar-bottom">
-    <div class="logout-btn">
+    <div class="logout-btn" onclick="window.location.href='index.html'">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Log Out
     </div>
@@ -681,7 +681,7 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--body-bg); col
       <div class="page-sub">Real-time Production Monitoring and Information Management System</div>
     </div>
     <div class="user-chip">
-      <div class="user-avatar">GG</div>
+      <div class="user-avatar">US</div>
       <div class="user-info">
         <div class="name">User</div>
         <div class="role">Senior Aquaculturist</div>
@@ -970,46 +970,61 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--body-bg); col
 // DATA: municipalities per district
 // =====================================================
 const DISTRICTS = {
-  "1": ["City of Ilagan", "Sta. Maria", "Tumauini", "Cabagan", "San Pablo"],
-  "2": ["Gamu", "Mallig", "San Isidro", "Cauayan City", "Reina Mercedes"],
-  "3": ["San Mateo", "Ramon", "Cordon", "Jones", "San Agustin"],
-  "4": ["Santiago City", "Dinapigue", "Divilacan", "Palanan"],
-  "5": ["Luna", "Quezon", "Quirino", "Maconacon", "Alicia"],
-  "6": ["Echague", "Angadanan", "Aurora", "Benito Soliven", "Ilagan"]
+  "1": ["City of Ilagan", "Cabagan", "Delfin Albano", "Divilacan", "Maconacon","San Pablo", "Santa Maria", "Santo Tomas","Tumauini"],
+  "2": ["Benito Soliven", "Gamu", "Naguilian", "Palanan", "Reina Mercedes", "San Mariano"],
+  "3": ["Alicia", "Angadanan", "Cabatuan", "Ramon", "San Mateo"],
+  "4": ["Santiago","Cordon","Dinapigue","Jones", "San Agustin"],
+  "5": ["Aurora", "Burgos", "Luna", "Mallig", "Quezon", "Quirino", "Roxas", "San Manuel"],
+  "6": ["Cauayan", "Echague", "San Guillermo", "San Isidro"]
 };
 
 // =====================================================
 // SPECIES LISTS (from Excel file)
 // =====================================================
 const SPECIES_AQUA = [
-  "Tilapia", "Catfish (Hito)", "Carp", "Mudfish (Dalag)", "Milkfish (Bangus)",
-  "Gourami", "FW Shrimp", "Ulang", "Goldfish", "Bighead Carp", "Grass Carp",
-  "Silver Carp", "Other Species"
+  "Carp,Cavalla (Talakitok)", "Endeavor Prawn (Suahe)", "Freshwater Prawn (Ulang)", 
+  "Freshwater Shrimp (Hipon)", "Gourami,Grouper (Lapu-Lapu)", "Mangrove Crab (Rasa/Alimango)", 
+  "Milkfish (Bangus)", "Mudfish,Oyster (Talaba)", "Seabass (Apahap/Barramundi)", 
+  "Seaweeds,Siganid (Samaral/Malaga)", "Snapper (Maya-maya)", "Spiny Lobster (Binaging)", 
+  "Surgeon Fish,Tiger Prawn (Sugpo)", "Tilapia", "White Shrimp (Hipon puti)","Other Species(specify):"
 ];
 const SPECIES_MUNI_INLAND = [
-  "Tilapia (all kinds)", "Carp (all kinds)", "Freshwater Goby (Biya)",
-  "Freshwater Catfish (Hito)", "Freshwater Catfish (Kanduli)",
-  "Mudfish (Dalag)", "Silver Perch (Ayungin)", "Rice Eel (Kiwet)",
-  "Freshwater Eel (Igat)", "Freshwater Shrimp (Hipon)",
-  "Freshwater Crab (Talangka)", "Freshwater Clam (Tulya)",
-  "Shell (Kuhol)", "Snail (Suso)", "Gourami",
-  "Mullet (Kapak)", "Mullet (Ludong)", "Golden Fish",
-  "Others: Itawes", "Other Species"
+  "Blue Swimming Crab (Alimasag)", "Buan-buan,Carp (All Kinds)", "Climbing Perch (Martiniko)", 
+  "Endeavor Prawn (Suahe)", "Freshwater Catfish (Hito)", "Freshwater Catfish (Kanduli)", 
+  "Freshwater Clam (Kabibi)", "Freshwater Clam (Tulya)", "Freshwater crab (Talangka)", 
+  "Freshwater Eel (Igat)", "Freshwater Goby (Biya)", "Freshwater Prawn (Ulang)", 
+  "Freshwater Sardines (Tawilis)", "Freshwater Shrimp (Hipon)", "Freshwater Snail (Liddeg)", 
+  "Golden Snail (Kuhol)", "Gourami,Lobster (Binaging)", "Mangrove Crab (Alimago/Rasa)", 
+  "Manila Clam (unnok)", "Milkfish (Bangus)", "Mudfish (Dalag)", "Mullet (Kapak)", 
+  "Mullet (Ludong)", "Oyster (Talaba)", "Shell (Agurong)", "Silver Perch (Ayungin)", 
+  "Snail (Suso)", "Spade Fish (Kitang)", "Stary Goby (Dulong)", "Tiger Prawn (Sugpo)", 
+  "Tilapia (All Kinds)", "White Shrimp (Hipon Puti)", "Other Species(specify):"
 ];
 const SPECIES_MUNI_MARINE = [
-  "Frigate Tuna (Tulingan)", "Skipjack Tuna (Gulyasan)",
-  "Yellowfin Tuna (Tambakol)", "Roundscad (Galunggong)",
-  "Big-eye Scad (Matang-baka)", "Cavalla (Talakitok)",
-  "Dolphinfish (Dorado)", "Squid (Pusit)", "Octopus (Kurita)",
-  "Lobster (Binaging)", "Hairtail (Espada)", "Siganid (Samaral)",
-  "Salmon", "Sarungan", "Umipos", "Sandig", "Parot Fish",
-  "Other Species"
+  "Acetes (Alamang)","Anchovies (Dilis)","Big hoe","Big-eye Scad (Matang-baka)", 
+  "Bigeye Tuna (Tambakol/Bariles)", "Black-barred halfbeak (Barasot)", 
+  "Blue Marlin (Malasugi)", "Blue Sea Chub (Ilek)", "Bluespine Unicornfish (Bangbangan)",
+  "Cavalla (Talakitok)", "Crevalle (Salay-Salay)", "Cubalan", "Dolphinfish (Dorado)", 
+  "Eastern Little Tuna (Bonito)", "Fimbriated Sardines (Tunsoy)", "Flying Fish (Bolador)", 
+  "Frigate Tuna (Tulingan)", "Goat Fish (Saramulyete)", "Grouper (Lapu-lapu)", "Gurlisan,Hairtail (Espada)", 
+  "Indian Mackerel (Alumahan)", "Indian Sardines (Tamban)", "Indo-Pacific Mackerel (Hasa-hasa)", "Malaguno", 
+  "Octopus (Kurita/Pulpulsot)", "Ornate Emperor (Sapingilan)", "Parrotfish (Loro)", "Porgies (Pargo)", "Rainbow Runner (Salmon)",
+  "Round Herring (Tulis)", "Roundscad (Galunggong)", "Sandig,Sarungan", "Siganid (Samaral/Malaga)", "Skipjack Tuna (Gulyasan)", 
+  "Slipmouth (Sapsap)", "Snapper (Maya-maya)", "Spanish Mackerel (Tanigue)", "Squid (Pusit)", "Threafin Bream (Bisugo)", "Umipos", 
+  "Yellow Tail Fusilier (Dalagang Bukid)", "Yellowfin Tuna (Tambakol/Bariles)", "Other Species(specify):"
 ];
 const SPECIES_COMM = [
-  "Roundscad (Galunggong)", "Yellowfin Tuna (Tambakol)",
-  "Frigate Tuna (Tulingan)", "Skipjack Tuna (Gulyasan)",
-  "Big-eye Scad (Matang-baka)", "Squid (Pusit)",
-  "Sardines", "Mackerel", "Flying Fish", "Other Species"
+  "Acetes (Alamang)","Anchovies (Dilis)","Big hoe","Big-eye Scad (Matang-baka)", 
+  "Bigeye Tuna (Tambakol/Bariles)", "Black-barred halfbeak (Barasot)", 
+  "Blue Marlin (Malasugi)", "Blue Sea Chub (Ilek)", "Bluespine Unicornfish (Bangbangan)",
+  "Cavalla (Talakitok)", "Crevalle (Salay-Salay)", "Cubalan", "Dolphinfish (Dorado)", 
+  "Eastern Little Tuna (Bonito)", "Fimbriated Sardines (Tunsoy)", "Flying Fish (Bolador)", 
+  "Frigate Tuna (Tulingan)", "Goat Fish (Saramulyete)", "Grouper (Lapu-lapu)", "Gurlisan,Hairtail (Espada)", 
+  "Indian Mackerel (Alumahan)", "Indian Sardines (Tamban)", "Indo-Pacific Mackerel (Hasa-hasa)", "Malaguno", 
+  "Octopus (Kurita/Pulpulsot)", "Ornate Emperor (Sapingilan)", "Parrotfish (Loro)", "Porgies (Pargo)", "Rainbow Runner (Salmon)",
+  "Round Herring (Tulis)", "Roundscad (Galunggong)", "Sandig,Sarungan", "Siganid (Samaral/Malaga)", "Skipjack Tuna (Gulyasan)", 
+  "Slipmouth (Sapsap)", "Snapper (Maya-maya)", "Spanish Mackerel (Tanigue)", "Squid (Pusit)", "Threafin Bream (Bisugo)", "Umipos", 
+  "Yellow Tail Fusilier (Dalagang Bukid)", "Yellowfin Tuna (Tambakol/Bariles)", "Other Species(specify):"
 ];
 
 // =====================================================
