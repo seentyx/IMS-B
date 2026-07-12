@@ -242,6 +242,8 @@ body {
   .hero-title { font-size: 1.25rem; }
 }
 </style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -289,12 +291,12 @@ body {
 
       <form id="loginForm" novalidate>
         <div class="field" id="usernameField">
-          <label for="username">Username</label>
+          <label for="username">Email Address</label>
           <div class="input-wrap">
             <span class="icon">
               <img src="images/user.png" alt="username">
             </span>
-            <input type="text" id="username" name="username" placeholder="Enter your username" autocomplete="username">
+            <input type="text" id="username" placeholder="Enter your email" autocomplete="email">
           </div>
           <p class="field-error">Please enter your username.</p>
         </div>
@@ -327,7 +329,8 @@ body {
         </button>
       </form>
 
-      <p class="register-line">Don't have an account? <a href="#">Register</a></p>
+      <p class="register-line">Need an account? <a href="mailto:admin@bfarpfo.gov.ph">Contact your administrator</a></p>
+
     </div>
   </section>
 
@@ -350,44 +353,53 @@ body {
 </footer>
 
 <script>
-  const USERS = [{ username: 'admin', password: '12345' }];
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Toggle password visibility
-  document.getElementById('togglePass').addEventListener('click', function() {
-    const inp = document.getElementById('password');
-    const isText = inp.type === 'text';
-    inp.type = isText ? 'password' : 'text';
-    document.getElementById('eyeIcon').src = isText
-      ? 'https://img.icons8.com/ios-filled/50/000000/visible.png'
-      : 'https://img.icons8.com/ios-filled/50/000000/hide.png';
-    document.getElementById('eyeIcon').alt = isText ? 'show password' : 'hide password';
-  });
+// Toggle password visibility
+document.getElementById('togglePass').addEventListener('click', function () {
+  const inp = document.getElementById('password');
+  const isText = inp.type === 'text';
+  inp.type = isText ? 'password' : 'text';
+  document.getElementById('eyeIcon').src = isText
+    ? 'https://img.icons8.com/ios-filled/50/000000/visible.png'
+    : 'https://img.icons8.com/ios-filled/50/000000/hide.png';
+});
 
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const errBox = document.getElementById('login-error');
+document.getElementById('loginForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
 
-    // Clear previous states
-    document.getElementById('usernameField').classList.remove('invalid');
-    document.getElementById('passwordField').classList.remove('invalid');
-    errBox.classList.remove('show');
+  const email = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const errBox = document.getElementById('login-error');
 
-    let valid = true;
-    if (!username) { document.getElementById('usernameField').classList.add('invalid'); valid = false; }
-    if (!password) { document.getElementById('passwordField').classList.add('invalid'); valid = false; }
-    if (!valid) return;
+  document.getElementById('usernameField').classList.remove('invalid');
+  document.getElementById('passwordField').classList.remove('invalid');
+  errBox.classList.remove('show');
 
-    const match = USERS.find(u => u.username === username && u.password === password);
-    if (match) {
-      window.location.href = 'dashboard.html';
-    } else {
-      errBox.classList.add('show');
-      document.getElementById('password').value = '';
-      document.getElementById('password').focus();
-    }
-  });
+  let valid = true;
+  if (!email) { document.getElementById('usernameField').classList.add('invalid'); valid = false; }
+  if (!password) { document.getElementById('passwordField').classList.add('invalid'); valid = false; }
+  if (!valid) return;
+
+  // Show loading state
+  const btn = document.querySelector('.btn-signin');
+  btn.disabled = true;
+  btn.innerHTML = 'Signing in...';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    errBox.textContent = 'Incorrect email or password. Please try again.';
+    errBox.classList.add('show');
+    document.getElementById('password').value = '';
+    document.getElementById('password').focus();
+    btn.disabled = false;
+    btn.innerHTML = '<img src="https://img.icons8.com/ios-filled/50/ffffff/enter-2.png" alt="sign in"> SIGN IN';
+  } else {
+    window.location.href = 'dashboard.html';
+  }
+});
 </script>
 </body>
 </html>

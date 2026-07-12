@@ -255,7 +255,10 @@ tr:hover td { background: rgba(31,122,108,0.03); }
 @media (max-width: 1100px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .panel-grid { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .sidebar { display: none; } .main { margin-left: 0; } .stat-grid { grid-template-columns: 1fr; } }
 </style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
 
 <!-- ===== SIDEBAR ===== -->
@@ -308,7 +311,7 @@ tr:hover td { background: rgba(31,122,108,0.03); }
   </div>
 
   <div class="sidebar-bottom">
-    <button class="logout-btn" onclick="window.location.href='index.html'">
+    <button class="logout-btn" onclick="handleLogout()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Log Out
     </button>
@@ -481,6 +484,15 @@ tr:hover td { background: rgba(31,122,108,0.03); }
 </div>
 
 <script>
+  // Redirect to login if not authenticated
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (!session) {
+    window.location.href = 'index.html';
+  }
+});
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const supabase = createClient(
