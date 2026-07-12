@@ -481,99 +481,26 @@ tr:hover td { background: rgba(31,122,108,0.03); }
 </div>
 
 <script>
-const ALL_RECORDS = [
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:5400},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:780},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:50},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Carp",production:15},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Ulang",production:3},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Catfish (Hito)",production:71},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:100},
-  {district:"2",muni:"Gamu",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:60},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Carp",production:350},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:500},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Mudfish (Dalag)",production:300},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:7360},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Carp",production:800},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Catfish (Hito)",production:400},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Mudfish (Dalag)",production:350},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:11000},
-  {district:"3",muni:"Ramon",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:17360},
-  {district:"3",muni:"Ramon",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:289789},
-  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:1350},
-  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Gourami",production:100},
-  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:230},
-  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"Catfish (Hito)",production:20},
-  {district:"5",muni:"Quirino",month:"jan",category:"Aquaculture",farm:"SWIP/Dams",species:"FW Shrimp",production:50},
-  {district:"6",muni:"Echague",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:2350},
-  {district:"6",muni:"Echague",month:"jan",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:3625},
-  {district:"1",muni:"City of Ilagan",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:4800},
-  {district:"2",muni:"Gamu",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:114},
-  {district:"3",muni:"Ramon",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:14385},
-  {district:"3",muni:"Ramon",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:220150},
-  {district:"4",muni:"Santiago City",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:7650},
-  {district:"4",muni:"Dinapigue",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:519.7},
-  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Carp",production:30},
-  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Catfish (Hito)",production:50},
-  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:860},
-  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Carp",production:380},
-  {district:"5",muni:"Luna",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:350},
-  {district:"5",muni:"Quezon",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:11389},
-  {district:"5",muni:"Quirino",month:"feb",category:"Aquaculture",farm:"Fishpond",species:"Tilapia",production:850},
-  {district:"5",muni:"Quirino",month:"feb",category:"Aquaculture",farm:"SWIP/Dams",species:"Tilapia",production:160},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:2200},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:2300},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Silver Perch (Ayungin)",production:600},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Goby (Biya)",production:8500},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:1150},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:1030},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mullet (Kapak)",production:1320},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:800},
-  {district:"1",muni:"City of Ilagan",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Gourami",production:650},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:800},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:240},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:40},
-  {district:"1",muni:"Sta. Maria",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Eel (Igat)",production:120},
-  {district:"2",muni:"Gamu",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:321},
-  {district:"2",muni:"Gamu",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:527},
-  {district:"2",muni:"Gamu",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:138},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:18360},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Goby (Biya)",production:250},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:900},
-  {district:"3",muni:"San Mateo",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Rice Eel (Kiwet)",production:2500},
-  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:8000},
-  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:2000},
-  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Silver Perch (Ayungin)",production:1500},
-  {district:"3",muni:"Ramon",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:1500},
-  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Big-eye Scad (Matang-baka)",production:1251.3},
-  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Frigate Tuna (Tulingan)",production:1524.4},
-  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Skipjack Tuna (Gulyasan)",production:631},
-  {district:"4",muni:"Dinapigue",month:"jan",category:"Municipal",farm:"Marine Municipal",species:"Dolphinfish (Dorado)",production:497.6},
-  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:170},
-  {district:"5",muni:"Quirino",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Rice Eel (Kiwet)",production:50},
-  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:1320},
-  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:980},
-  {district:"6",muni:"Echague",month:"jan",category:"Municipal",farm:"Inland Municipal",species:"Rice Eel (Kiwet)",production:2500},
-  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:3200},
-  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:2350},
-  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Goby (Biya)",production:3000},
-  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:2030},
-  {district:"1",muni:"City of Ilagan",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Mudfish (Dalag)",production:1500},
-  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:405},
-  {district:"2",muni:"Gamu",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Carp (all kinds)",production:313},
-  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:7500},
-  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Silver Perch (Ayungin)",production:2000},
-  {district:"3",muni:"Ramon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Freshwater Catfish (Hito)",production:2500},
-  {district:"4",muni:"Santiago City",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:150},
-  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Yellowfin Tuna (Tambakol)",production:5822.6},
-  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Frigate Tuna (Tulingan)",production:3852.9},
-  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Dolphin Fish",production:1548.3},
-  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Salmon",production:1010.4},
-  {district:"4",muni:"Dinapigue",month:"feb",category:"Municipal",farm:"Marine Municipal",species:"Roundscad (Galunggong)",production:758.5},
-  {district:"5",muni:"Luna",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:350},
-  {district:"5",muni:"Quezon",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:540},
-  {district:"5",muni:"Quirino",month:"feb",category:"Municipal",farm:"Inland Municipal",species:"Tilapia (all kinds)",production:100},
-];
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const supabase = createClient(
+  'https://supabase.com/dashboard/project/wwvcytjqrxkuzgylujqa',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3dmN5dGpxcnhrdXpneWx1anFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4NDg0NDksImV4cCI6MjA5OTQyNDQ0OX0.YXtkYrFrwBJljdVlZWEKy5lZsHs-KcwdjwGZVMRXzrE'
+)
+
+async function loadRecords() {
+  const { data, error } = await supabase
+    .from('production_records')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) { console.error(error); return; }
+  filtered = data;
+  ALL_RECORDS = data;
+  renderAll();
+}
+
+loadRecords();
 
 // Canonical district -> municipality map (source of truth)
 const DISTRICTS = { "1": ["City of Ilagan", "Cabagan", "Delfin Albano", "Divilacan", "Maconacon","San Pablo", "Santa Maria", "Santo Tomas","Tumauini"], "2": ["Benito Soliven", "Gamu", "Naguilian", "Palanan", "Reina Mercedes", "San Mariano"], "3": ["Alicia", "Angadanan", "Cabatuan", "Ramon", "San Mateo"], "4": ["Santiago","Cordon","Dinapigue","Jones", "San Agustin"], "5": ["Aurora", "Burgos", "Luna", "Mallig", "Quezon", "Quirino", "Roxas", "San Manuel"], "6": ["Cauayan", "Echague", "San Guillermo", "San Isidro"] };
